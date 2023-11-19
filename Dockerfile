@@ -41,6 +41,19 @@ RUN wget https://github.com/novnc/noVNC/archive/refs/tags/v1.4.0.zip -P/tmp && \
     chown -R ubuntu:ubuntu /opt/noVNC
 
 
+# Install RStudio Server
+# https://dailies.rstudio.com/links/#rstudio-server-stable
+RUN apt update && \
+    apt install --no-install-recommends --no-install-suggests --yes gdebi-core && \
+    cd /tmp && \
+    curl --location --remote-name https://rstudio.org/download/latest/stable/server/jammy/rstudio-server-latest-amd64.deb && \
+    gdebi --non-interactive rstudio-server-latest-amd64.deb && \
+    rm -f rstudio-server-latest-amd64.deb && \
+    echo "auth-none=1" >> /etc/rstudio/rserver.conf && \
+    echo "server-daemonize=0" >> /etc/rstudio/rserver.conf && \
+    echo "USER=ubuntu" >> /etc/environment
+
+
 # Install VS Code extensions
 RUN npm install -g @vscode/vsce yarn && \
     mkdir --parents /opt/cs50/extensions && \
@@ -96,6 +109,9 @@ USER root
 # Copy files from builder
 COPY --from=builder /build/glibc-sMfBJT /build/glibc-sMfBJT
 COPY --from=builder /usr/local/bin/lua /usr/local/bin/lua
+COPY --from=builder /etc /etc
+COPY --from=builder /usr /usr
+COPY --from=builder /var /var
 COPY --from=builder /opt/noVNC /opt/noVNC
 COPY --from=builder /opt/cs50/extensions /opt/cs50/extensions
 COPY --from=builder /opt/share/bfg-1.14.0.jar /opt/share/bfg-1.14.0.jar
